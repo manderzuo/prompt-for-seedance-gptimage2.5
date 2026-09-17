@@ -1,0 +1,21 @@
+{
+  "name": "prompt-for-seedance-gptimage2-5",
+  "owner": {
+    "name": "local"
+  },
+  "metadata": {
+    "description": "GPT-Image2 prompt cases and style-library agent skill.",
+    "version": "1.0.4"
+  },
+  "plugins": [
+    {
+      "name": "gpt-image-2-style-library",
+      "description": "Choose GPT-Image2 visual styles, industrial prompt templates, categories, and scene tags.",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./agents/skills/gpt-image-2-style-library"
+      ]
+    }
+  ]
+}

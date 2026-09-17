@@ -1,0 +1,79 @@
+{
+  "name": "awesome-gpt-image-2-site",
+  "private": true,
+  "version": "1.0.4",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0 <23"
+  },
+  "main": "electron/main.cjs",
+  "scripts": {
+    "generate:site-data": "node scripts/generate-site-data.mjs",
+    "generate:style-skill": "node scripts/generate-style-skill.mjs",
+    "translate:cases": "python scripts/translate-cases-local.py",
+    "ga4:oauth": "node scripts/google-analytics-oauth.mjs",
+    "install:skill": "node scripts/install-style-skill.mjs",
+    "pack:skill": "npm pack ./agents/skills/gpt-image-2-style-library --dry-run",
+    "publish:skill:npm": "npm publish ./agents/skills/gpt-image-2-style-library --access public",
+    "predev": "npm run generate:site-data && npm run generate:style-skill",
+    "dev": "vite",
+    "dev:alipay-sandbox": "node scripts/alipay-webpay-sandbox-server.mjs",
+    "prebuild": "npm run generate:site-data && npm run generate:style-skill",
+    "build": "vite build",
+    "preview": "vite preview",
+    "electron:dev": "npm run build && electron .",
+    "dist:win": "npm run verify && electron-builder --win nsis",
+    "test": "node --test api/_lib/*.test.js src/optimizer/imageRules.test.js",
+    "test:apimart": "node --test shared/apimart.test.js src/apimartClient.test.js api/_lib/apimart.test.js api/_lib/generation.test.js",
+    "test:all": "npm run test && npm run test:apimart",
+    "verify": "npm run test:all && npm run build"
+  },
+  "dependencies": {
+    "@google-analytics/data": "^5.2.2",
+    "@supabase/supabase-js": "^2.105.4",
+    "alipay-sdk": "^4.14.0",
+    "google-auth-library": "^10.6.2",
+    "https-proxy-agent": "^9.1.0",
+    "lucide-react": "^0.561.0",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1",
+    "stripe": "^22.1.1"
+  },
+  "devDependencies": {
+    "electron": "^44.4.1",
+    "electron-builder": "^26.15.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "vite": "^7.2.7"
+  },
+  "build": {
+    "appId": "com.manderzuo.gptimage2.promptgallery",
+    "productName": "GPT Image 2 Prompt Gallery",
+    "compression": "normal",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "GPT-Image-2-Prompt-Gallery-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "runAfterFinish": false
+    }
+  }
+}
