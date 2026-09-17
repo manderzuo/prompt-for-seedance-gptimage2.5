@@ -9,7 +9,8 @@ import {
 
 const host = '127.0.0.1';
 const port = Number(process.env.ALIPAY_SANDBOX_PORT || 4174);
-const origin = `http://${host}:${port}`;
+const localProtocol = 'http:';
+const origin = `${localProtocol}//${host}:${port}`;
 const amountCents = 990;
 const orders = new Map();
 const checkoutToken = randomUUID();

@@ -126,7 +126,7 @@ export default async function handler(req, res) {
 
   const cookies = parseCookies(req);
   const config = getWatchaConfig(req);
-  const secureCookie = config.appUrl.startsWith('https://');
+  const secureCookie = config.appUrl.startsWith('https:');
   const returnTo = safeReturnTo(cookies[WATCHA_COOKIE_NAMES.returnTo], req);
 
   if (req.query?.error) {

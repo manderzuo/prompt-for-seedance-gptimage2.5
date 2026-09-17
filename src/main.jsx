@@ -859,6 +859,7 @@ function generationErrorMessage(error, language) {
   if (error === 'APIMART_UNAVAILABLE') return t.apimartUnavailable;
   if (error === 'APIMART_TASK_FAILED') return t.apimartTaskFailed;
   if (error === 'APIMART_TASK_TIMEOUT') return t.apimartTaskTimeout;
+  if (error === 'APIMART_ENDPOINT_NOT_CONFIGURED') return t.serverUnavailable;
   if (error === 'SERVER_NOT_CONFIGURED') return t.serverUnavailable;
   if (
     error === 'BILLING_NOT_CONFIGURED'

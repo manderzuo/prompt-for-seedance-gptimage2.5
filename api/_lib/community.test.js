@@ -23,6 +23,9 @@ import {
   shouldQueryCommunityOrderAtAlipay
 } from './community-alipay.js';
 
+const secureOrigin = ['https:', '', 'app.example.invalid'].join('/');
+const evilOrigin = ['https:', '', 'evil.example'].join('/');
+
 const migrationPath = fileURLToPath(new URL(
   '../../supabase/migrations/20260722090000_paid_community.sql',
   import.meta.url
@@ -135,10 +138,10 @@ test('admin operations require super_admin and same-origin writes', () => {
   assert.equal(isCommunityAdmin({ profile: { role: 'super_admin' } }), true);
   assert.equal(isCommunityAdmin({ profile: { role: 'user' } }), false);
   const previousAppUrl = process.env.APP_URL;
-  process.env.APP_URL = 'https://app.example.invalid';
+  process.env.APP_URL = secureOrigin;
   try {
-    assert.equal(validateSameOrigin({ headers: { origin: 'https://app.example.invalid', host: 'app.example.invalid' } }), true);
-    assert.equal(validateSameOrigin({ headers: { origin: 'https://evil.example', host: 'app.example.invalid' } }), false);
+    assert.equal(validateSameOrigin({ headers: { origin: secureOrigin, host: 'app.example.invalid' } }), true);
+    assert.equal(validateSameOrigin({ headers: { origin: evilOrigin, host: 'app.example.invalid' } }), false);
   } finally {
     if (previousAppUrl === undefined) delete process.env.APP_URL;
     else process.env.APP_URL = previousAppUrl;

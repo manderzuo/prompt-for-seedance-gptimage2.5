@@ -1,9 +1,6 @@
 import crypto from 'node:crypto';
 import { getAppUrl } from './billing.js';
 
-const WATCHA_AUTHORIZE_URL = 'https://watcha.cn/oauth/authorize';
-const WATCHA_TOKEN_URL = 'https://watcha.cn/oauth/api/token';
-const WATCHA_USERINFO_URL = 'https://watcha.cn/oauth/api/userinfo';
 const COOKIE_MAX_AGE = 10 * 60;
 
 export const WATCHA_COOKIE_NAMES = {
@@ -24,16 +21,23 @@ export function getWatchaConfig(req) {
     clientSecret: process.env.WATCHA_CLIENT_SECRET || '',
     isPublicClient: process.env.WATCHA_PUBLIC_CLIENT === 'true',
     redirectUri,
-    scope: process.env.WATCHA_SCOPE || 'read email',
-    authorizeUrl: process.env.WATCHA_AUTHORIZE_URL || WATCHA_AUTHORIZE_URL,
-    tokenUrl: process.env.WATCHA_TOKEN_URL || WATCHA_TOKEN_URL,
-    userinfoUrl: process.env.WATCHA_USERINFO_URL || WATCHA_USERINFO_URL
+    scope: process.env.WATCHA_SCOPE || '',
+    authorizeUrl: String(process.env.WATCHA_AUTHORIZE_URL || '').trim(),
+    tokenUrl: String(process.env.WATCHA_TOKEN_URL || '').trim(),
+    userinfoUrl: String(process.env.WATCHA_USERINFO_URL || '').trim()
   };
 }
 
 export function isWatchaConfigured(req) {
   const config = getWatchaConfig(req);
-  return Boolean(config.clientId && (config.clientSecret || config.isPublicClient));
+  return Boolean(
+    config.clientId
+      && (config.clientSecret || config.isPublicClient)
+      && config.scope
+      && config.authorizeUrl
+      && config.tokenUrl
+      && config.userinfoUrl
+  );
 }
 
 export function randomToken(byteLength = 32) {

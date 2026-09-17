@@ -1,5 +1,4 @@
 import {
-  APIMART_API_BASE_URL,
   apimartErrorCode,
   buildApimartGenerationPayload,
   extractApimartTaskId,
@@ -13,6 +12,18 @@ export const APIMART_KEY_STORAGE_KEY = 'gpt-image-2-apimart-key:v1';
 export const APIMART_PENDING_STORAGE_KEY = 'gpt-image-2-pending-tests:v1';
 export const GENERATED_TESTS_STORAGE_KEY = 'gpt-image-2-generated-tests:v1';
 const MAX_SAVED_GENERATIONS = 12;
+
+export function getBrowserApimartBaseUrl(explicit = '') {
+  const baseUrl = String(explicit || import.meta.env?.VITE_APIMART_API_BASE_URL || '')
+    .trim()
+    .replace(/\/$/, '');
+  if (!baseUrl) {
+    const error = new Error('APIMART_ENDPOINT_NOT_CONFIGURED');
+    error.code = error.message;
+    throw error;
+  }
+  return baseUrl;
+}
 
 function browserStorage(storage) {
   if (storage) return storage;
@@ -86,8 +97,9 @@ function responseError(response, payload) {
   return error;
 }
 
-export async function verifyPersonalApimartKey(apiKey, fetchImpl = fetch) {
-  const response = await fetchImpl(`${APIMART_API_BASE_URL}/v1/models`, {
+export async function verifyPersonalApimartKey(apiKey, fetchImpl = fetch, baseUrl = '') {
+  const endpoint = getBrowserApimartBaseUrl(baseUrl);
+  const response = await fetchImpl(`${endpoint}/v1/models`, {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${apiKey}`,
@@ -100,8 +112,9 @@ export async function verifyPersonalApimartKey(apiKey, fetchImpl = fetch) {
   return true;
 }
 
-export async function submitPersonalGeneration(prompt, apiKey, language, fetchImpl = fetch) {
-  const response = await fetchImpl(`${APIMART_API_BASE_URL}/v1/images/generations`, {
+export async function submitPersonalGeneration(prompt, apiKey, language, fetchImpl = fetch, baseUrl = '') {
+  const endpoint = getBrowserApimartBaseUrl(baseUrl);
+  const response = await fetchImpl(`${endpoint}/v1/images/generations`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${apiKey}`,
@@ -122,14 +135,15 @@ export async function submitPersonalGeneration(prompt, apiKey, language, fetchIm
   return { taskId, status: 'submitted' };
 }
 
-export async function fetchPersonalTask(taskId, apiKey, language, fetchImpl = fetch) {
+export async function fetchPersonalTask(taskId, apiKey, language, fetchImpl = fetch, baseUrl = '') {
   if (!isValidApimartTaskId(taskId)) {
     const error = new Error('APIMART_INVALID_TASK');
     error.code = error.message;
     throw error;
   }
+  const endpoint = getBrowserApimartBaseUrl(baseUrl);
   const query = new URLSearchParams({ language: language === 'zh' ? 'zh' : 'en' });
-  const response = await fetchImpl(`${APIMART_API_BASE_URL}/v1/tasks/${encodeURIComponent(taskId)}?${query}`, {
+  const response = await fetchImpl(`${endpoint}/v1/tasks/${encodeURIComponent(taskId)}?${query}`, {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${apiKey}`,

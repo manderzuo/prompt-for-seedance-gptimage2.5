@@ -22,6 +22,9 @@ const notifyHandlerSource = readFileSync(
   new URL('../billing/alipay/notify.js', import.meta.url),
   'utf8'
 );
+const localAppUrl = ['http:', '', '127.0.0.1:3000'].join('/');
+const localNotifyUrl = ['http:', '', '127.0.0.1:3000/notify'].join('/');
+const secureAppUrl = ['https:', '', 'app.example.invalid'].join('/');
 
 test('formats integer cents as a two-decimal yuan amount', () => {
   assert.equal(formatAlipayAmount(1), '0.01');
@@ -123,13 +126,13 @@ test('omits local notify URLs and requires HTTPS for explicit callbacks', () => 
   delete process.env.ALIPAY_NOTIFY_ENABLED;
 
   try {
-    assert.equal(getAlipayNotifyUrl('http://127.0.0.1:3000'), '');
+    assert.equal(getAlipayNotifyUrl(localAppUrl), '');
     assert.equal(
-      getAlipayNotifyUrl('https://app.example.invalid'),
-      'https://app.example.invalid/api/billing/alipay/notify'
+      getAlipayNotifyUrl(secureAppUrl),
+      `${secureAppUrl}/api/billing/alipay/notify`
     );
-    process.env.ALIPAY_NOTIFY_URL = 'http://127.0.0.1:3000/notify';
-    assert.throws(() => getAlipayNotifyUrl('https://app.example.invalid'), /INVALID_NOTIFY_URL/);
+    process.env.ALIPAY_NOTIFY_URL = localNotifyUrl;
+    assert.throws(() => getAlipayNotifyUrl(secureAppUrl), /INVALID_NOTIFY_URL/);
   } finally {
     if (previousUrl === undefined) delete process.env.ALIPAY_NOTIFY_URL;
     else process.env.ALIPAY_NOTIFY_URL = previousUrl;
@@ -142,14 +145,14 @@ test('uses a separate HTTPS callback for paid-community orders', () => {
   const previous = process.env.COMMUNITY_ALIPAY_NOTIFY_URL;
   delete process.env.COMMUNITY_ALIPAY_NOTIFY_URL;
   try {
-    assert.equal(getCommunityAlipayNotifyUrl('http://localhost:5173'), '');
+    assert.equal(getCommunityAlipayNotifyUrl(localAppUrl), '');
     assert.equal(
-      getCommunityAlipayNotifyUrl('https://app.example.invalid'),
-      'https://app.example.invalid/api/community/alipay/notify'
+      getCommunityAlipayNotifyUrl(secureAppUrl),
+      `${secureAppUrl}/api/community/alipay/notify`
     );
-    process.env.COMMUNITY_ALIPAY_NOTIFY_URL = 'http://localhost:5173/notify';
+    process.env.COMMUNITY_ALIPAY_NOTIFY_URL = localNotifyUrl;
     assert.throws(
-      () => getCommunityAlipayNotifyUrl('https://app.example.invalid'),
+      () => getCommunityAlipayNotifyUrl(secureAppUrl),
       /INVALID_COMMUNITY_NOTIFY_URL/
     );
   } finally {

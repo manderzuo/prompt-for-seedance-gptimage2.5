@@ -3,9 +3,6 @@ import { createInterface } from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
 import { OAuth2Client } from 'google-auth-library';
 
-const SCOPE = 'https://www.googleapis.com/auth/analytics.readonly';
-const DEFAULT_REDIRECT_URI = 'http://localhost:8080/oauth2callback';
-
 function parseEnvValue(value) {
   const trimmed = String(value || '').trim();
   if (
@@ -49,10 +46,11 @@ loadEnvFile('.env');
 
 const clientId = process.env.GOOGLE_ANALYTICS_CLIENT_ID;
 const clientSecret = process.env.GOOGLE_ANALYTICS_CLIENT_SECRET;
-const redirectUri = process.env.GOOGLE_ANALYTICS_REDIRECT_URI || DEFAULT_REDIRECT_URI;
+const scope = String(process.env.GOOGLE_ANALYTICS_SCOPE || '').trim();
+const redirectUri = String(process.env.GOOGLE_ANALYTICS_REDIRECT_URI || '').trim();
 
-if (!clientId || !clientSecret) {
-  console.error('Missing GOOGLE_ANALYTICS_CLIENT_ID or GOOGLE_ANALYTICS_CLIENT_SECRET.');
+if (!clientId || !clientSecret || !scope || !redirectUri) {
+  console.error('Missing Google Analytics OAuth configuration. Set client id, client secret, scope and redirect URI.');
   process.exit(1);
 }
 
@@ -60,12 +58,12 @@ const oauth = new OAuth2Client(clientId, clientSecret, redirectUri);
 const authUrl = oauth.generateAuthUrl({
   access_type: 'offline',
   prompt: 'consent',
-  scope: [SCOPE]
+  scope: [scope]
 });
 
 console.log('\nOpen this URL with the Google account that can read your GA4 property:\n');
 console.log(authUrl);
-console.log('\nAfter Google redirects to localhost, copy the full callback URL or just the code parameter.\n');
+console.log('\nAfter authorization completes, copy the full callback URL or just the code parameter.\n');
 
 const cliCodeIndex = process.argv.indexOf('--code');
 let code = cliCodeIndex >= 0 ? process.argv[cliCodeIndex + 1] : '';

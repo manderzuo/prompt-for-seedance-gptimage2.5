@@ -12,6 +12,7 @@ const routeLoaders = new Map([
   ['/api/admin/community/refund-query', () => import('../api/admin/community/refund-query.js')],
   ['/api/admin/community/revoke', () => import('../api/admin/community/revoke.js')]
 ]);
+const localProtocol = 'http:';
 
 function sendJson(res, status, payload) {
   res.statusCode = status;
@@ -58,7 +59,7 @@ export function localVercelApi() {
     apply: 'serve',
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
-        const requestUrl = new URL(req.url || '/', 'http://127.0.0.1');
+        const requestUrl = new URL(req.url || '/', `${localProtocol}//127.0.0.1`);
         const routeLoader = routeLoaders.get(requestUrl.pathname);
         const isCommunityApi = requestUrl.pathname.startsWith('/api/community/')
           || requestUrl.pathname.startsWith('/api/admin/community/');

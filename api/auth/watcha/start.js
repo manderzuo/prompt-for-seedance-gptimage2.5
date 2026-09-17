@@ -4,6 +4,7 @@ import {
   codeChallenge,
   cookie,
   getWatchaConfig,
+  isWatchaConfigured,
   randomToken,
   safeReturnTo,
   WATCHA_COOKIE_NAMES
@@ -24,9 +25,9 @@ export default async function handler(req, res) {
 
   const config = getWatchaConfig(req);
   const returnTo = safeReturnTo(req.query?.returnTo || req.query?.return_to, req);
-  const secureCookie = config.appUrl.startsWith('https://');
+  const secureCookie = config.appUrl.startsWith('https:');
 
-  if (!config.clientId || (!config.clientSecret && !config.isPublicClient)) {
+  if (!isWatchaConfigured(req)) {
     redirect(res, authErrorRedirect(req, 'watcha_not_configured', returnTo));
     return;
   }

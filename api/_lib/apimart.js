@@ -1,5 +1,4 @@
 import {
-  APIMART_API_BASE_URL,
   APIMART_DEFAULT_PRICE_USD,
   APIMART_PRICE_SNAPSHOT_DATE,
   apimartErrorCode,
@@ -11,9 +10,20 @@ import {
   retryAfterMilliseconds
 } from '../../shared/apimart.js';
 
+function configuredBaseUrl(value) {
+  const baseUrl = String(value || '').trim().replace(/\/$/, '');
+  if (!baseUrl) {
+    const error = new Error('APIMART_ENDPOINT_NOT_CONFIGURED');
+    error.code = error.message;
+    throw error;
+  }
+  return baseUrl;
+}
+
 export function getApimartConfig() {
   const apiKey = String(process.env.APIMART_API_KEY || '').trim();
-  return { baseUrl: APIMART_API_BASE_URL, apiKey, configured: Boolean(apiKey) };
+  const baseUrl = String(process.env.APIMART_API_BASE_URL || '').trim().replace(/\/$/, '');
+  return { baseUrl, apiKey, configured: Boolean(apiKey && baseUrl) };
 }
 
 function upstreamError(response, payload) {
@@ -35,10 +45,11 @@ export async function submitApimartGeneration({
   prompt,
   language = 'en',
   webhook = '',
+  baseUrl = '',
   fetchImpl = fetch
 }) {
-  const { baseUrl } = getApimartConfig();
-  const response = await fetchImpl(`${baseUrl}/v1/images/generations`, {
+  const endpoint = configuredBaseUrl(baseUrl || process.env.APIMART_API_BASE_URL);
+  const response = await fetchImpl(`${endpoint}/v1/images/generations`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${apiKey}`,
@@ -59,16 +70,16 @@ export async function submitApimartGeneration({
   return { taskId, status: 'submitted' };
 }
 
-export async function getApimartTask({ apiKey, taskId, language = 'en', fetchImpl = fetch }) {
+export async function getApimartTask({ apiKey, taskId, language = 'en', baseUrl = '', fetchImpl = fetch }) {
   if (!isValidApimartTaskId(taskId)) {
     const error = new Error('APIMART_INVALID_TASK');
     error.code = error.message;
     error.status = 400;
     throw error;
   }
-  const { baseUrl } = getApimartConfig();
+  const endpoint = configuredBaseUrl(baseUrl || process.env.APIMART_API_BASE_URL);
   const query = new URLSearchParams({ language: language === 'zh' ? 'zh' : 'en' });
-  const response = await fetchImpl(`${baseUrl}/v1/tasks/${encodeURIComponent(taskId)}?${query}`, {
+  const response = await fetchImpl(`${endpoint}/v1/tasks/${encodeURIComponent(taskId)}?${query}`, {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${apiKey}`,
@@ -82,8 +93,8 @@ export async function getApimartTask({ apiKey, taskId, language = 'en', fetchImp
 }
 
 export async function getApimartPricing(fetchImpl = fetch) {
-  const { baseUrl } = getApimartConfig();
-  const response = await fetchImpl(`${baseUrl}/api/pricing/model?model=gpt-image-2`, {
+  const endpoint = configuredBaseUrl(process.env.APIMART_API_BASE_URL);
+  const response = await fetchImpl(`${endpoint}/api/pricing/model?model=gpt-image-2`, {
     method: 'GET',
     headers: { Accept: 'application/json' },
     cache: 'no-store'

@@ -31,9 +31,9 @@ import { compileLocalImagePrompt } from './imageRules';
 import './styles.css';
 
 const DEFAULT_SETTINGS = {
-  endpoint: 'https://api.openai.com/v1',
+  endpoint: '',
   model: 'gpt-4o-mini',
-  proxy: 'http://127.0.0.1:10808',
+  proxy: '',
   hasApiKey: false
 };
 
@@ -116,8 +116,7 @@ function App() {
       optimizerApi.loadSettings()
         .then((stored) => setSettings({
           ...DEFAULT_SETTINGS,
-          ...stored,
-          proxy: stored.proxy === 'http://127.0.0.1:10809' ? DEFAULT_SETTINGS.proxy : (stored.proxy || DEFAULT_SETTINGS.proxy),
+          ...stored
         }))
         .catch(() => setSettings(DEFAULT_SETTINGS));
     }
@@ -508,7 +507,7 @@ function App() {
             <div className="drawer-heading"><div><Settings2 size={20} /><h2>OpenAI 兼容接口</h2></div><button onClick={() => setShowSettings(false)}><X size={18} /></button></div>
             <p className="drawer-description">支持 OpenAI、DeepSeek、硅基流动以及其他提供 `/chat/completions` 的兼容服务。</p>
             <label className="field-label" htmlFor="endpoint">接口地址</label>
-            <input id="endpoint" value={settings.endpoint} onChange={(event) => updateSetting('endpoint', event.target.value)} placeholder="https://api.openai.com/v1" />
+            <input id="endpoint" value={settings.endpoint} onChange={(event) => updateSetting('endpoint', event.target.value)} placeholder="填写接口地址" />
             <p className="field-help">可填写基础地址，也可直接填写完整的 `/chat/completions` 地址。</p>
             <label className="field-label" htmlFor="model">模型名称</label>
             <input id="model" value={settings.model} onChange={(event) => updateSetting('model', event.target.value)} placeholder="gpt-4o-mini" />
@@ -517,7 +516,7 @@ function App() {
             {settings.hasApiKey && <div className="saved-key-note"><Check size={14} /> 已有一个保存的 API Key；不会回显明文。</div>}
             {settings.hasApiKey && <button className="danger-link" onClick={() => setClearApiKey((value) => !value)}><Trash2 size={14} />{clearApiKey ? '将清除已保存 Key' : '清除已保存 Key'}</button>}
             <label className="field-label" htmlFor="proxy">HTTP 代理 <span>可选</span></label>
-            <input id="proxy" value={settings.proxy} onChange={(event) => updateSetting('proxy', event.target.value)} placeholder="http://127.0.0.1:10808" />
+            <input id="proxy" value={settings.proxy} onChange={(event) => updateSetting('proxy', event.target.value)} placeholder="可选，填写代理地址" />
             <p className="field-help">如果你的 API 需要代理，可填写本机代理；不需要时清空。</p>
             <div className="settings-actions">
               <button className="secondary-button" onClick={testConnection} disabled={status.type === 'loading'}><Zap size={16} />测试连接</button>

@@ -1,5 +1,4 @@
 export const APIMART_MODEL = 'gpt-image-2';
-export const APIMART_API_BASE_URL = 'https://api.apimart.ai';
 export const APIMART_DEFAULT_PRICE_USD = 0.010625;
 export const APIMART_PRICE_SNAPSHOT_DATE = '2026-08-28';
 export const APIMART_MAX_PROMPT_LENGTH = 10_000;

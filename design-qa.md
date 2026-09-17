@@ -52,7 +52,7 @@ The new output retains the grid and readable LIMORA branding. Panel 2 uses a dri
 
 - Selected visual truth: design 1, the first displayed immersive slider design, preserved as [design-1.jpg](docs/design/gpt-image-2-5/design-1.jpg).
 - Portable reference: [design-1.jpg](docs/design/gpt-image-2-5/design-1.jpg).
-- Verified production build preview: `http://127.0.0.1:4179/gpt-image-2-5/`.
+- Verified production build preview through the local preview service.
 - Final browser screenshot: [preview.jpg](docs/design/gpt-image-2-5/preview.jpg).
 - Full-view comparison, reference left and implementation right: [comparison.jpg](docs/design/gpt-image-2-5/comparison.jpg).
 - Focused comparisons: [hero typography and artwork](docs/design/gpt-image-2-5/hero-comparison.jpg), [prompt and controls](docs/design/gpt-image-2-5/controls-comparison.jpg).

@@ -26,7 +26,7 @@
 本地代码直接读取项目根目录下、由支付宝 AI 付 Skill 创建并验证的 `.alipay-sandbox.json`：
 
 - Node.js 使用 `appIds[0].appPrivatePkcsKey`（PKCS#1）。
-- 网关固定为 `https://openapi-sandbox.dl.alipaydev.com/gateway.do`。
+- 网关由 `ALIPAY_SANDBOX_GATEWAY` 提供；生产环境使用 `ALIPAY_GATEWAY`。
 - 配置文件必须保持 Git 忽略和仅当前用户可读写。
 - 本地没有公网 HTTPS 地址时不发送 `notify_url`，付款结果由交易查询确认；通知处理代码仍会保留。
 

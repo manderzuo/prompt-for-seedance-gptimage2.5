@@ -13,10 +13,13 @@ import {
   retryAfterMilliseconds
 } from './apimart.js';
 
+const callbackPath = '/api/generation';
+const resultImage = 'result-image';
+
 test('generation payload locks GPT-Image-2 to one 1K square image', () => {
   assert.deepEqual(buildApimartGenerationPayload('  draw a fox  ', {
     language: 'zh',
-    webhook: 'https://example.com/api/generation',
+    webhook: callbackPath,
     n: 9,
     size: '16:9',
     resolution: '4k'
@@ -26,7 +29,7 @@ test('generation payload locks GPT-Image-2 to one 1K square image', () => {
     n: 1,
     size: '1:1',
     resolution: '1k',
-    webhook: 'https://example.com/api/generation',
+    webhook: callbackPath,
     language: 'zh'
   });
 });
@@ -41,7 +44,7 @@ test('task ids and async task responses are normalized', () => {
       cost: '0.010625',
       result: {
         images: [{
-          url: ['https://cdn.example/result.png'],
+          url: [resultImage],
           expires_at: '2026-08-29T00:00:00.000Z'
         }]
       }
@@ -49,7 +52,7 @@ test('task ids and async task responses are normalized', () => {
   });
   assert.equal(task.status, 'processing');
   assert.equal(task.progress, 67);
-  assert.equal(task.image, 'https://cdn.example/result.png');
+  assert.equal(task.image, resultImage);
   assert.equal(task.cost, 0.010625);
   assert.equal(task.expiresAt, Date.parse('2026-08-29T00:00:00.000Z') / 1000);
 });

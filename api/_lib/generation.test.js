@@ -16,6 +16,8 @@ const migration = readFileSync(fileURLToPath(new URL(
 )), 'utf8');
 const callbackSource = readFileSync(fileURLToPath(new URL('../generation/callback.js', import.meta.url)), 'utf8');
 const statusSource = readFileSync(fileURLToPath(new URL('../generation/status.js', import.meta.url)), 'utf8');
+const resultImage = 'result-image';
+const verifiedImage = 'verified-image';
 
 function settlementClient() {
   const calls = [];
@@ -50,12 +52,12 @@ function settlementClient() {
 
 test('provider settlement stores actual billing and expiring result fields', () => {
   assert.deepEqual(providerFieldsForTask({
-    image: 'https://cdn.example/result.png',
+    image: resultImage,
     expiresAt: 1787961600,
     cost: 0.010625
   }), {
     provider_cost_usd: 0.010625,
-    provider_result_url: 'https://cdn.example/result.png',
+    provider_result_url: resultImage,
     provider_result_expires_at: '2026-08-29T00:00:00.000Z'
   });
 });
@@ -65,7 +67,7 @@ test('success settles once and an already-settled duplicate is ignored', async (
   const reservation = { id: 'reservation-1', status: 'pending' };
   assert.equal(await settlePlatformGeneration(client, reservation, {
     status: 'completed',
-    image: 'https://cdn.example/result.png',
+    image: resultImage,
     expiresAt: 1787961600,
     cost: 0.010625
   }), true);
@@ -73,7 +75,7 @@ test('success settles once and an already-settled duplicate is ignored', async (
   assert.equal(client.calls.at(-1).name, 'complete_generation_reservation');
   assert.equal(await settlePlatformGeneration(client, { ...reservation, status: 'succeeded' }, {
     status: 'completed',
-    image: 'https://cdn.example/result.png'
+    image: resultImage
   }), false);
   assert.equal(client.calls.filter((call) => call.type === 'rpc').length, 1);
 });
@@ -112,13 +114,13 @@ test('stored terminal rows return the unified browser task shape', () => {
     status: 'succeeded',
     provider_task_id: 'task_abcdefgh',
     provider_cost_usd: '0.010625',
-    provider_result_url: 'https://cdn.example/result.png',
+    provider_result_url: resultImage,
     provider_result_expires_at: '2026-08-29T00:00:00.000Z'
   }), {
     taskId: 'task_abcdefgh',
     status: 'completed',
     progress: 100,
-    image: 'https://cdn.example/result.png',
+    image: resultImage,
     expiresAt: 1787961600,
     cost: 0.010625,
     errorMessage: '',
@@ -135,13 +137,13 @@ test('callback payload only wakes a provider-verified reconciliation', async () 
     findReservation: async (_client, taskId) => ({ id: 'reservation-1', status: 'pending', provider_task_id: taskId }),
     fetchTask: async ({ apiKey, taskId }) => {
       calls.push({ type: 'verify', apiKey, taskId });
-      return { status: 'completed', image: 'https://cdn.example/verified.png', cost: 0.010625 };
+      return { status: 'completed', image: verifiedImage, cost: 0.010625 };
     },
     settle: async (_client, reservation, task) => calls.push({ type: 'settle', reservation, task })
   });
   assert.equal(result.state, 'settled');
   assert.equal(calls[0].type, 'verify');
-  assert.equal(calls[1].task.image, 'https://cdn.example/verified.png');
+  assert.equal(calls[1].task.image, verifiedImage);
 
   let verified = false;
   const duplicate = await reconcileApimartCallback({

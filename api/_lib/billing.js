@@ -1,7 +1,6 @@
 import Stripe from 'stripe';
 
 const STRIPE_API_VERSION = '2026-02-25.clover';
-const DEFAULT_APP_URL = 'http://127.0.0.1:5173';
 
 let stripeClient;
 
@@ -23,7 +22,7 @@ export function getAppUrl(req) {
   if (process.env.APP_URL) return process.env.APP_URL.replace(/\/$/, '');
   const host = req?.headers?.['x-forwarded-host'] || req?.headers?.host;
   const protocol = req?.headers?.['x-forwarded-proto'] || 'https';
-  return host ? `${protocol}://${host}` : DEFAULT_APP_URL;
+  return host ? `${protocol}://${host}` : '';
 }
 
 export async function readJsonBody(req) {

@@ -7,6 +7,7 @@ const { HttpsProxyAgent } = require('https-proxy-agent');
 
 let mainWindow;
 let server;
+const localProtocol = 'http:';
 const settingsFileName = 'prompt-optimizer-settings.json';
 
 const contentTypes = {
@@ -289,7 +290,7 @@ function getFallbackPath(distDirectory, pathname) {
 function startStaticServer() {
   const distDirectory = getDistDirectory();
   server = http.createServer((request, response) => {
-    const requestUrl = new URL(request.url || '/', 'http://127.0.0.1');
+    const requestUrl = new URL(request.url || '/', `${localProtocol}//127.0.0.1`);
     let filePath = getSafePath(distDirectory, requestUrl.pathname);
 
     if (filePath && fs.existsSync(filePath) && fs.statSync(filePath).isDirectory()) {
@@ -326,7 +327,7 @@ function startStaticServer() {
 
 async function createWindow() {
   const port = await startStaticServer();
-  const localUrl = `http://127.0.0.1:${port}/`;
+  const localUrl = `${localProtocol}//127.0.0.1:${port}/`;
 
   mainWindow = new BrowserWindow({
     width: 1440,

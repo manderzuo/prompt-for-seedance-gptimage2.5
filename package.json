@@ -23,7 +23,7 @@
     "preview": "vite preview",
     "electron:dev": "npm run build && electron .",
     "dist:win": "npm run verify && electron-builder --win nsis",
-    "test": "node --test api/_lib/*.test.js src/optimizer/imageRules.test.js scripts/generate-site-data.test.mjs",
+    "test": "node --test api/_lib/*.test.js src/optimizer/imageRules.test.js scripts/generate-site-data.test.mjs scripts/repository-cleanliness.test.mjs",
     "test:apimart": "node --test shared/apimart.test.js src/apimartClient.test.js api/_lib/apimart.test.js api/_lib/generation.test.js",
     "test:all": "npm run test && npm run test:apimart",
     "verify": "npm run test:all && npm run build"

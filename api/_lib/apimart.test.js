@@ -15,13 +15,18 @@ function jsonResponse(status, payload, headers = {}) {
   });
 }
 
+const callbackPath = '/api/generation';
+const resultImage = 'result-image';
+const providerBaseUrl = 'provider-base';
+
 test('platform submission sends the fixed schema and callback base', async () => {
   const calls = [];
   const result = await submitApimartGeneration({
     apiKey: 'platform-key',
     prompt: 'draw a fox',
     language: 'en',
-    webhook: 'https://app.example.invalid/api/generation',
+    webhook: callbackPath,
+    baseUrl: providerBaseUrl,
     fetchImpl: async (url, options) => {
       calls.push({ url, options, body: JSON.parse(options.body) });
       return jsonResponse(200, { data: { task_id: 'task_abcdefgh' } });
@@ -35,7 +40,7 @@ test('platform submission sends the fixed schema and callback base', async () =>
     n: 1,
     size: '1:1',
     resolution: '1k',
-    webhook: 'https://app.example.invalid/api/generation',
+    webhook: callbackPath,
     language: 'en'
   });
 });
@@ -44,17 +49,18 @@ test('platform status parsing carries result URL, expiry and actual cost', async
   const task = await getApimartTask({
     apiKey: 'platform-key',
     taskId: 'task_abcdefgh',
+    baseUrl: providerBaseUrl,
     fetchImpl: async () => jsonResponse(200, {
       data: {
         id: 'task_abcdefgh',
         status: 'completed',
         progress: 100,
         cost: 0.010625,
-        result: { images: [{ url: 'https://cdn.example/result.png', expires_at: 1787961600 }] }
+        result: { images: [{ url: resultImage, expires_at: 1787961600 }] }
       }
     })
   });
-  assert.equal(task.image, 'https://cdn.example/result.png');
+  assert.equal(task.image, resultImage);
   assert.equal(task.expiresAt, 1787961600);
   assert.equal(task.cost, 0.010625);
 });
@@ -70,6 +76,7 @@ test('upstream 401, 402, 429 and 5xx remain distinguishable', async () => {
       submitApimartGeneration({
         apiKey: 'platform-key',
         prompt: 'draw a fox',
+        baseUrl: providerBaseUrl,
         fetchImpl: async () => jsonResponse(status, { error: { message: 'upstream error' } }, { 'retry-after': '4' })
       }),
       { code }

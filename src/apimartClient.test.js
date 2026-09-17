@@ -54,7 +54,7 @@ test('pending tasks persist without an API key and expired results are removed',
   assert.equal(JSON.stringify(pending).includes('apiKey'), false);
 
   saveGeneratedTest(42, {
-    image: 'https://cdn.example/expired.png',
+    image: 'expired-image',
     savedAt: '2026-08-28T00:00:00.000Z',
     expiresAt: 100
   }, storage);
@@ -69,9 +69,9 @@ test('personal submission sends the fixed APIMart schema directly', async () => 
       status: 200,
       headers: { 'content-type': 'application/json' }
     });
-  });
+  }, 'provider-base');
   assert.equal(result.taskId, 'task_abcdefgh');
-  assert.match(calls[0].url, /api\.apimart\.ai\/v1\/images\/generations$/);
+  assert.equal(calls[0].url, 'provider-base/v1/images/generations');
   assert.equal(calls[0].options.headers.Authorization, 'Bearer personal-key');
   assert.deepEqual(calls[0].body, {
     model: 'gpt-image-2',
@@ -115,7 +115,7 @@ test('polling stops on completion and honors Retry-After waits', async () => {
       throw error;
     }
     if (calls === 2) return { status: 'processing', progress: 50 };
-    return { status: 'completed', progress: 100, image: 'https://cdn.example/result.png' };
+    return { status: 'completed', progress: 100, image: 'result-image' };
   }, {
     intervalMs: 2000,
     waitImpl: async (milliseconds) => waits.push(milliseconds),

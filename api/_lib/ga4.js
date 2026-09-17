@@ -4,6 +4,10 @@ import { OAuth2Client } from 'google-auth-library';
 let analyticsClient;
 let oauthClient;
 
+function analyticsApiBaseUrl() {
+  return String(process.env.GOOGLE_ANALYTICS_API_URL || '').trim().replace(/\/$/, '');
+}
+
 function privateKey() {
   return process.env.GOOGLE_ANALYTICS_PRIVATE_KEY?.replace(/\\n/g, '\n');
 }
@@ -14,6 +18,7 @@ function hasOAuthConfig() {
       && process.env.GOOGLE_ANALYTICS_CLIENT_ID
       && process.env.GOOGLE_ANALYTICS_CLIENT_SECRET
       && process.env.GOOGLE_ANALYTICS_REFRESH_TOKEN
+      && analyticsApiBaseUrl()
   );
 }
 
@@ -92,7 +97,7 @@ async function runReport(request) {
     if (!token) throw new Error('GA4_OAUTH_TOKEN_FAILED');
 
     const response = await fetch(
-      `https://analyticsdata.googleapis.com/v1beta/properties/${process.env.GA4_PROPERTY_ID}:runReport`,
+      `${analyticsApiBaseUrl()}/v1beta/properties/${process.env.GA4_PROPERTY_ID}:runReport`,
       {
         method: 'POST',
         headers: {

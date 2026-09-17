@@ -3,13 +3,25 @@ import path from 'node:path';
 import { AlipaySdk } from 'alipay-sdk';
 
 const SANDBOX_CONFIG_FILE = '.alipay-sandbox.json';
-const SANDBOX_GATEWAY = 'https://openapi-sandbox.dl.alipaydev.com/gateway.do';
-const PRODUCTION_GATEWAY = 'https://openapi.alipay.com/gateway.do';
 
 function requiredText(value, field) {
   const text = String(value || '').trim();
   if (!text) throw new Error(`ALIPAY_CONFIG_MISSING_${field}`);
   return text;
+}
+
+function requiredHttpsEndpoint(value, field) {
+  const text = requiredText(value, field);
+  let endpoint;
+  try {
+    endpoint = new URL(text);
+  } catch {
+    throw new Error(`ALIPAY_CONFIG_INVALID_${field}`);
+  }
+  if (endpoint.protocol !== 'https:' || endpoint.username || endpoint.password || endpoint.hash) {
+    throw new Error(`ALIPAY_CONFIG_INVALID_${field}`);
+  }
+  return endpoint.toString().replace(/\/$/, '');
 }
 
 function requiredPrivateKey(value) {
@@ -29,8 +41,7 @@ function loadProductionConfig() {
   ];
   if (!configuredFields.some(Boolean)) return null;
 
-  const gateway = requiredText(process.env.ALIPAY_GATEWAY || PRODUCTION_GATEWAY, 'GATEWAY');
-  if (gateway !== PRODUCTION_GATEWAY) throw new Error('ALIPAY_CONFIG_INVALID_PRODUCTION_GATEWAY');
+  const gateway = requiredHttpsEndpoint(process.env.ALIPAY_GATEWAY, 'GATEWAY');
 
   return {
     mode: 'production',
@@ -56,7 +67,10 @@ function loadSandboxConfig() {
     privateKey: requiredPrivateKey(app?.appPrivatePkcsKey),
     alipayPublicKey: requiredText(app?.alipayPublicKey, 'PUBLIC_KEY'),
     sellerId: requiredText(app?.pid || payload?.sandboxAccounts?.partner?.userId, 'SELLER_ID'),
-    gateway: SANDBOX_GATEWAY
+    gateway: requiredHttpsEndpoint(
+      process.env.ALIPAY_SANDBOX_GATEWAY || process.env.ALIPAY_GATEWAY,
+      'GATEWAY'
+    )
   };
 }
 
