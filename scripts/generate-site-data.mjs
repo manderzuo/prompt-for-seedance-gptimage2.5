@@ -38,8 +38,11 @@ function cleanText(value = '') {
 
 function stripExternalLinks(value = '') {
   return String(value)
-    .replace(/https?:\/\/[^\s<>"'）】]+/gi, '[网址]')
-    .replace(/\bwww\.[^\s<>"'）】]+/gi, '[网址]');
+    .replace(/https?:\/\/[^\s<>"'）】)\]}]+/gi, '')
+    .replace(/\bwww\.[^\s<>"'）】)\]}]+/gi, '')
+    .replace(/[ \t]{2,}/g, ' ')
+    .replace(/[ \t]+\n/g, '\n')
+    .trim();
 }
 
 function stripMarkdown(value = '') {
@@ -189,8 +192,13 @@ mkdirSync(dirname(outFile), { recursive: true });
 const serializedPayload = `${JSON.stringify(payload, null, 2)}\n`;
 writeFileSync(outFile, serializedPayload);
 const legacyCases = (legacyExistingPayload?.cases || cases).map((item) => {
-  const { sourceLabel, sourceUrl, ...cleanItem } = item;
-  return cleanItem;
+  const { sourceLabel, sourceUrl, ...withoutSourceFields } = item;
+  return Object.fromEntries(
+    Object.entries(withoutSourceFields).map(([key, value]) => [
+      key,
+      typeof value === 'string' ? stripExternalLinks(value) : value
+    ])
+  );
 });
 const legacyPayload = legacyExistingPayload
   ? { ...legacyExistingPayload, totalCases: legacyCases.length, cases: legacyCases }
