@@ -4,6 +4,7 @@ const http = require('node:http');
 const https = require('node:https');
 const path = require('node:path');
 const { HttpsProxyAgent } = require('https-proxy-agent');
+const { buildProviderHeaders, ensureSessionId } = require('./opencode-compat.cjs');
 
 let mainWindow;
 let server;
@@ -56,6 +57,7 @@ function readStoredSettings() {
     endpoint: typeof stored.endpoint === 'string' ? stored.endpoint : '',
     model: typeof stored.model === 'string' ? stored.model : '',
     proxy: typeof stored.proxy === 'string' ? stored.proxy : '',
+    opencodeSessionId: ensureSessionId(stored.opencodeSessionId),
     apiKey,
   };
 }
@@ -66,6 +68,7 @@ function saveStoredSettings(settings) {
     endpoint: String(settings.endpoint || '').trim(),
     model: String(settings.model || '').trim(),
     proxy: String(settings.proxy || '').trim(),
+    opencodeSessionId: ensureSessionId(settings.opencodeSessionId || current.opencodeSessionId),
   };
 
   const apiKey = String(settings.apiKey || '').trim();
@@ -84,7 +87,13 @@ function saveStoredSettings(settings) {
 
   fs.mkdirSync(path.dirname(getSettingsPath()), { recursive: true });
   fs.writeFileSync(getSettingsPath(), JSON.stringify(next, null, 2), 'utf8');
-  return { endpoint: next.endpoint, model: next.model, proxy: next.proxy, hasApiKey: Boolean(next.encryptedApiKey) };
+  return {
+    endpoint: next.endpoint,
+    model: next.model,
+    proxy: next.proxy,
+    opencodeSessionId: next.opencodeSessionId,
+    hasApiKey: Boolean(next.encryptedApiKey),
+  };
 }
 
 function publicSettings() {
@@ -93,6 +102,7 @@ function publicSettings() {
     endpoint: settings.endpoint,
     model: settings.model,
     proxy: settings.proxy,
+    opencodeSessionId: settings.opencodeSessionId,
     hasApiKey: Boolean(settings.apiKey),
   };
 }
@@ -204,13 +214,8 @@ async function optimizePrompt(payload) {
     max_tokens: payload.contentType === 'video' ? 3500 : 2500,
   });
   const proxy = String(payload.proxy || stored.proxy || '').trim();
-  const normalizedApiKey = apiKey.replace(/^Bearer\s+/i, '').trim();
-  const response = await requestJson(endpoint, requestBody, proxy, {
-    // Authorization is the OpenAI-compatible standard. api-key also covers
-    // compatible gateways that copy Azure-style authentication semantics.
-    Authorization: `Bearer ${normalizedApiKey}`,
-    'api-key': normalizedApiKey,
-  });
+  const sessionId = ensureSessionId(payload.opencodeSessionId || stored.opencodeSessionId);
+  const response = await requestJson(endpoint, requestBody, proxy, buildProviderHeaders(apiKey, sessionId));
   const rawBody = response.body;
   let responseBody;
   try {
@@ -245,11 +250,8 @@ async function testConnection(payload) {
     max_tokens: 3,
   });
   const proxy = String(payload.proxy || stored.proxy || '').trim();
-  const normalizedApiKey = apiKey.replace(/^Bearer\s+/i, '').trim();
-  const response = await requestJson(endpoint, requestBody, proxy, {
-    Authorization: `Bearer ${normalizedApiKey}`,
-    'api-key': normalizedApiKey,
-  });
+  const sessionId = ensureSessionId(payload.opencodeSessionId || stored.opencodeSessionId);
+  const response = await requestJson(endpoint, requestBody, proxy, buildProviderHeaders(apiKey, sessionId));
 
   let responseBody;
   try {
